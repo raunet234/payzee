@@ -1,85 +1,119 @@
+# =============================================================================
+# Payzee Project .gitignore
+# =============================================================================
 
-
-# Python
+# -----------------------------------------------------------------------------
+# Python / Backend
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.coverage
+*.cover
+htmlcov/
 backend/.env
 backend/.env.*
 backend/stellar_pay.db
-backend/__pycache__/
-backend/.pytest_cache/
-backend/.mypy_cache/
-backend/.vscode/
-backend/.DS_Store
+backend/*.sqlite3
 
-.git
+# -----------------------------------------------------------------------------
+# Node.js / Frontend
+# -----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+bun.lockb
 
-# Node/JS/TS
-**/node_modules/
-**/bun.lockb
-**/dist/
-**/build/
-**/.next/
-**/.turbo/
-**/.parcel-cache/
-**/.eslintcache
-**/.DS_Store
+# -----------------------------------------------------------------------------
+# Build Outputs
+# -----------------------------------------------------------------------------
+dist/
+build/
+.next/
+.turbo/
+.parcel-cache/
+*.tsbuildinfo
 
-# React/Vite
-**/dashboard/.env
-**/dashboard/.env.*
-**/dashboard/node_modules/
-**/dashboard/dist/
-**/dashboard/build/
-**/dashboard/.DS_Store
-dashboard/node_modules
-
-# Extension
-**/extension/node_modules/
-**/extension/dist/
-**/extension/build/
-**/extension/.DS_Store
-
-# Soroban
-soroban-escrow/target/
-soroban-escrow/.DS_Store
-
-# General
-.DS_Store
+# -----------------------------------------------------------------------------
+# Environment & Secrets
+# -----------------------------------------------------------------------------
 .env
 .env.*
-*.log
-*.sqlite3
-*.pyc
-*.pyo
+.env.local
+.env.*.local
+!.env.example
+
+# -----------------------------------------------------------------------------
+# IDE & Editor
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
 *.swp
 *.swo
-*.bak
+*.sublime-workspace
+*.sublime-project
+
+# -----------------------------------------------------------------------------
+# macOS
+# -----------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+__MACOSX/
+
+# -----------------------------------------------------------------------------
+# Windows
+# -----------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------------------------------------------------------
+# Linux
+# -----------------------------------------------------------------------------
+*~
+.directory
+
+# -----------------------------------------------------------------------------
+# Logs & Temp Files
+# -----------------------------------------------------------------------------
+*.log
 *.tmp
+*.temp
+*.bak
 *.orig
 
-# VSCode
-.vscode/
-.github/
-.venv/
+# -----------------------------------------------------------------------------
+# Sui / Move
+# -----------------------------------------------------------------------------
+sui-escrow/build/
+sui-escrow/.sui/
 
-# Mac
-Icon?
-
-# Test outputs
-**/__pycache__/
-**/.pytest_cache/
-**/.mypy_cache/
-
-# Ignore deployment artifacts
+# -----------------------------------------------------------------------------
+# Soroban (Legacy)
+# -----------------------------------------------------------------------------
+soroban-escrow/target/
 soroban-escrow/deployment.json
 
-# Ignore coverage
+# -----------------------------------------------------------------------------
+# Vercel
+# -----------------------------------------------------------------------------
+.vercel
+
+# -----------------------------------------------------------------------------
+# Test Outputs
+# -----------------------------------------------------------------------------
 coverage/
-*.cover
-*.coverage
-
-# Ignore local test scripts
-backend/test_e2e_auto.py
-backend/test_event_detection.py
-backend/test_webhook_flow.py
-
-
+.eslintcache

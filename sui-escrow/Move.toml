@@ -1,7 +1,15 @@
+# =============================================================================
+# Payzee Escrow Smart Contract
+#
+# Sui Move package for USDC escrow functionality.
+# Handles deposits, releases, and refunds for the payment bridge.
+# =============================================================================
+
 [package]
 name = "payzee_escrow"
 version = "0.0.1"
-edition = "2024.beta"
+edition = "2024.beta"  # Sui Move edition
 
 [addresses]
+# Address placeholder - replaced during deployment
 payzee_escrow = "0x0"

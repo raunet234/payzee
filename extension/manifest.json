@@ -2,14 +2,17 @@
   "manifest_version": 3,
   "name": "Payzee",
   "version": "1.0.8",
-  "description": "Pay at any checkout using Stellar USDC - automatic currency conversion",
+  "description": "Pay at any checkout using USDC on Sui - automatic currency conversion",
+
   "permissions": [
     "activeTab",
     "scripting"
   ],
+
   "host_permissions": [
     "<all_urls>"
   ],
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
