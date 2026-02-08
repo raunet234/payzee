@@ -1,7 +1,16 @@
-"""Lithic API service wrapper for card creation and transaction simulation."""
+"""
+Lithic API Service
+
+Service wrapper for Lithic virtual card operations including:
+- Virtual card creation (SINGLE_USE cards with spend limits)
+- Authorization simulation (sandbox testing)
+- Clearing/settlement simulation (sandbox testing)
+
+For production, cards are created with a 5% buffer (Buffer & Refund strategy)
+to handle tax, shipping, and other checkout surcharges.
+"""
 from typing import Any, Dict, Optional
 
-import requests
 from lithic import Lithic
 
 from ..config import settings

@@ -1,12 +1,22 @@
-"""Sui network service for USDC escrow and payment transactions."""
+"""
+Sui Network Service
+
+Service for interacting with the Sui blockchain for USDC escrow operations.
+
+Supported operations:
+- Building deposit transactions for user signing
+- Submitting signed transactions to the network
+- Releasing escrowed funds to merchants (admin)
+- Refunding escrowed funds to users (admin)
+"""
 import logging
 from decimal import Decimal
-from typing import Optional, Dict, Any
-import json
+from typing import Any, Dict, Optional
+
 from pysui import SuiConfig, SyncClient
-from pysui.sui.sui_types.scalars import ObjectID, SuiString
-from pysui.sui.sui_txn import SyncTransaction
 from pysui.sui.sui_crypto import SuiAddress
+from pysui.sui.sui_txn import SyncTransaction
+from pysui.sui.sui_types.scalars import ObjectID, SuiString
 
 from ..config import settings
 

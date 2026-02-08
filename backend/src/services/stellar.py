@@ -1,4 +1,16 @@
-"""Stellar network service for USDC refund transactions."""
+"""
+Stellar Network Service
+
+Service for interacting with the Stellar network to send USDC refunds.
+
+This service is used for the Buffer & Refund strategy:
+1. User deposits slightly more than needed (5% buffer)
+2. After merchant charges actual amount, unused buffer is calculated
+3. This service sends the unused buffer back to user's Stellar wallet
+
+Note: Primary escrow operations have migrated to Sui blockchain.
+This service handles Stellar-based refunds only.
+"""
 import logging
 from decimal import Decimal
 from typing import Optional

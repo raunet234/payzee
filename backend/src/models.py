@@ -1,4 +1,9 @@
-"""Database models for card and transaction state management."""
+"""
+Database Models
+
+SQLModel definitions for virtual card and transaction state management.
+These models define the schema for tracking the complete payment lifecycle.
+"""
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
@@ -6,17 +11,38 @@ from uuid import uuid4
 from sqlmodel import Field, SQLModel
 
 
+# =============================================================================
+# Utility Functions
+# =============================================================================
+
+
 def utc_now() -> datetime:
-    """Return current UTC datetime."""
+    """Return the current UTC datetime with timezone info."""
     return datetime.now(timezone.utc)
+
+
+# =============================================================================
+# Virtual Card Model
+# =============================================================================
 
 
 class VirtualCard(SQLModel, table=True):
     """
-    Represents a virtual card created via Lithic.
-    
-    Links a Stellar transaction to a Lithic virtual card,
-    tracking the full lifecycle from creation to clearing.
+    Virtual card database model.
+
+    Represents a Lithic virtual card linked to a blockchain transaction.
+    Tracks the complete payment lifecycle from creation through clearing,
+    including authorization, settlement, and refund states.
+
+    Attributes:
+        id: Unique card identifier (UUID)
+        stellar_transaction_id: Blockchain transaction hash (Stellar or Sui)
+        user_stellar_address: User's wallet address for refunds
+        amount_cents: Original payment amount in cents
+        spend_limit_cents: Card spend limit including buffer
+        lithic_card_token: Lithic's card identifier
+        authorization_token: Lithic authorization transaction token
+        cleared: Whether the transaction has settled
     """
 
     __tablename__ = "virtual_cards"

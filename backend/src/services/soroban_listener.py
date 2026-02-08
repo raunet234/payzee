@@ -3,14 +3,18 @@ Soroban Event Listener Service
 
 Polls the Stellar Soroban RPC for PaymentReceived events from the escrow contract.
 When a payment is detected, it triggers card creation via the Lithic API.
+
+Note: This service is for Stellar/Soroban integration (legacy).
+The primary integration has migrated to Sui blockchain.
 """
 import asyncio
 import logging
-from typing import Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
 
 from stellar_sdk import SorobanServer, scval, xdr
-from .config import settings
+
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 

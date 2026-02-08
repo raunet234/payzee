@@ -1,7 +1,14 @@
 """
-payzee Backend API - Phase 1: Lithic Integration
+Payzee Backend API
 
-FastAPI application for managing virtual card creation and lifecycle.
+FastAPI application for the crypto-to-fiat payment bridge.
+Manages virtual card creation, payment processing, and webhook handling.
+
+Key Features:
+- Payment session initiation
+- Sui blockchain transaction verification
+- Lithic virtual card creation and lifecycle management
+- Webhook processing for Buffer & Refund strategy
 """
 import hashlib
 import hmac
@@ -21,13 +28,14 @@ from sqlmodel import Session, SQLModel, create_engine, select
 from .config import settings
 from .models import VirtualCard
 from .services.lithic import lithic_service
-# from .services.stellar import stellar_service  # Removed - migrated to Sui
+
 
 logger = logging.getLogger(__name__)
 
-# -----------------------------
+
+# =============================================================================
 # Database Setup
-# -----------------------------
+# =============================================================================
 
 engine = create_engine(
     settings.database_url,
@@ -41,20 +49,25 @@ engine = create_engine(
 
 
 def get_session():
-    """Dependency to get database session."""
+    """FastAPI dependency that provides a database session."""
     with Session(engine) as session:
         yield session
 
 
-# -----------------------------
+# =============================================================================
 # Security
-# -----------------------------
+# =============================================================================
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def verify_api_key(x_api_key: Optional[str] = Depends(api_key_header)) -> None:
-    """Verify API key from request header."""
+    """
+    FastAPI dependency that validates the API key from request headers.
+
+    Raises:
+        HTTPException: 401 if API key is missing or invalid.
+    """
     if not x_api_key or x_api_key != settings.api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,13 +75,18 @@ def verify_api_key(x_api_key: Optional[str] = Depends(api_key_header)) -> None:
         )
 
 
-# -----------------------------
+# =============================================================================
 # Request/Response Schemas
-# -----------------------------
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Card Creation Schemas
+# -----------------------------------------------------------------------------
 
 
 class CreateCardRequest(BaseModel):
-    """Request to create a new virtual card."""
+    """Request schema for creating a new virtual card."""
 
     stellar_transaction_id: str = Field(
         ...,
@@ -93,8 +111,13 @@ class CreateCardRequest(BaseModel):
     )
 
 
+# -----------------------------------------------------------------------------
+# Card Response Schemas
+# -----------------------------------------------------------------------------
+
+
 class CardInfoResponse(BaseModel):
-    """Card information response."""
+    """Schema for Lithic card information in API responses."""
 
     token: Optional[str] = Field(None, description="Lithic card token")
     last_four: Optional[str] = Field(None, description="Last 4 digits")
@@ -122,8 +145,13 @@ class ClearingInfo(BaseModel):
     debug_id: Optional[str] = Field(None, description="Lithic debug request ID")
 
 
+# -----------------------------------------------------------------------------
+# Payment Session Schemas
+# -----------------------------------------------------------------------------
+
+
 class InitiatePaymentRequest(BaseModel):
-    """Request to initiate a payment session."""
+    """Request schema for initiating a new payment session."""
     
     amount: float = Field(..., description="Payment amount in USD")
     user_public_key: str = Field(..., description="User's Stellar public key")
@@ -157,8 +185,13 @@ class VirtualCardResponse(BaseModel):
     updated_at: datetime = Field(..., description="Last update timestamp")
 
 
+# -----------------------------------------------------------------------------
+# Simulation Schemas (Sandbox Testing)
+# -----------------------------------------------------------------------------
+
+
 class SimulateAuthorizationRequest(BaseModel):
-    """Request to simulate card authorization."""
+    """Request schema for simulating a card authorization (sandbox only)."""
 
     amount_cents: int = Field(
         ...,
@@ -203,13 +236,13 @@ class SimulateClearingResponse(BaseModel):
     debugging_request_id: Optional[str] = Field(None, description="Debug request ID")
 
 
-# -----------------------------
+# =============================================================================
 # FastAPI Application
-# -----------------------------
+# =============================================================================
 
 app = FastAPI(
-    title="payzee Backend API",
-    description="Backend API for Stellar-to-Fiat Payment Bridge with Lithic Integration",
+    title="Payzee Backend API",
+    description="Backend API for crypto-to-fiat payment bridge with Lithic integration",
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -230,20 +263,20 @@ if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 
-# -----------------------------
+# =============================================================================
 # Event Handlers
-# -----------------------------
+# =============================================================================
 
 
 @app.on_event("startup")
 def on_startup() -> None:
-    """Initialize database on startup."""
+    """Initialize database tables on application startup."""
     SQLModel.metadata.create_all(engine)
 
 
-# -----------------------------
-# API Routes
-# -----------------------------
+# =============================================================================
+# API Routes - General
+# =============================================================================
 
 
 @app.get("/", include_in_schema=False)
@@ -261,12 +294,17 @@ def root():
     summary="Health check",
 )
 def health_check():
-    """Health check endpoint."""
+    """Return current API health status and configuration."""
     return {
         "status": "ok",
         "timestamp": datetime.utcnow().isoformat(),
         "environment": settings.lithic_environment,
     }
+
+
+# =============================================================================
+# API Routes - Payment
+# =============================================================================
 
 
 @app.post(
@@ -545,6 +583,11 @@ def submit_payment(request: Dict[str, Any], db_session: Session = Depends(get_se
         )
 
 
+# =============================================================================
+# API Routes - Cards
+# =============================================================================
+
+
 @app.get(
     "/api/v1/cards/by-transaction/{transaction_id}",
     response_model=VirtualCardResponse,
@@ -787,6 +830,11 @@ def list_cards(
     return [_build_card_response(card) for card in cards]
 
 
+# =============================================================================
+# API Routes - Testing (Sandbox Only)
+# =============================================================================
+
+
 @app.post(
     "/api/v1/cards/{card_id}/simulate/authorize",
     response_model=SimulateAuthorizationResponse,
@@ -801,11 +849,19 @@ def simulate_authorization(
 ) -> SimulateAuthorizationResponse:
     """
     Simulate a card authorization transaction (sandbox only).
-    
-    This endpoint is for testing the authorization flow.
+
+    This endpoint is for testing the authorization flow in Lithic's sandbox.
     It uses the card's PAN to simulate a merchant charging the card.
-    
-    Requires X-API-Key header.
+
+    Args:
+        card_id: The virtual card ID.
+        request: Authorization details including amount and merchant info.
+
+    Returns:
+        SimulateAuthorizationResponse with transaction token.
+
+    Raises:
+        HTTPException: 404 if card not found, 400 if PAN unavailable.
     """
     card = session.get(VirtualCard, card_id)
     
@@ -907,13 +963,21 @@ def simulate_clearing(
         )
 
 
-# -----------------------------
+# =============================================================================
 # Helper Functions
-# -----------------------------
+# =============================================================================
 
 
 def _build_card_response(card: VirtualCard) -> VirtualCardResponse:
-    """Build API response from database model."""
+    """
+    Transform a VirtualCard database model into an API response.
+
+    Args:
+        card: VirtualCard model instance.
+
+    Returns:
+        VirtualCardResponse with all card lifecycle information.
+    """
     card_info = None
     if card.lithic_card_token:
         card_info = CardInfoResponse(
@@ -955,9 +1019,9 @@ def _build_card_response(card: VirtualCard) -> VirtualCardResponse:
     )
 
 
-# -----------------------------
-# Lithic Webhooks (Buffer & Refund)
-# -----------------------------
+# =============================================================================
+# Lithic Webhooks (Buffer & Refund Strategy)
+# =============================================================================
 
 
 def verify_lithic_webhook_signature(
@@ -967,14 +1031,20 @@ def verify_lithic_webhook_signature(
 ) -> bool:
     """
     Verify Lithic webhook signature using HMAC-SHA256.
-    
+
+    Lithic signs webhook payloads to ensure authenticity. This function
+    validates that the incoming webhook is genuinely from Lithic.
+
     Args:
-        payload: Raw request body
-        signature: X-Lithic-Signature header value
-        secret: Webhook secret from Lithic dashboard
-        
+        payload: Raw request body bytes.
+        signature: X-Lithic-Signature header value.
+        secret: Webhook secret from Lithic dashboard.
+
     Returns:
-        True if signature is valid, False otherwise
+        True if signature is valid, False otherwise.
+
+    Note:
+        Returns True when secret is not configured (development mode).
     """
     if not secret:
         logger.warning("Webhook secret not configured - skipping verification")
