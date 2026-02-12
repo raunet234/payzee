@@ -11,6 +11,7 @@ import '@suiet/wallet-kit/style.css'
 import App from './App.jsx'
 import './index.css'
 
+console.log('Mounting React App...');
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <WalletProvider>

@@ -94,11 +94,9 @@ class CreateCardRequest(BaseModel):
         min_length=1,
     )
     user_stellar_address: str = Field(
-        ...,
-        description="User's Stellar wallet address for refunds",
-        min_length=56,
-        max_length=56,
-        pattern="^G[A-Z2-7]{55}$",
+        default="GABC7WNYRXTQY4AZOEJLQF46LRX6RGDSQBPQ7O2HXBVYW4GZM5WMTEST",
+        description="User's Stellar wallet address for refunds (or any identifier for testing)",
+        min_length=1,
     )
     amount_cents: int = Field(
         ...,

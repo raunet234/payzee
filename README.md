@@ -2,6 +2,37 @@
 
 A crypto-to-fiat payment bridge that enables users to pay at any online checkout using cryptocurrency. The system creates virtual cards funded by crypto deposits through an escrow smart contract, allowing seamless conversion from digital assets to traditional payment methods.
 
+## 🚀 Quick Start
+
+**Important:** This project has TWO user interfaces - don't get confused!
+
+### ✅ Main Application (Use This!)
+**URL:** `http://localhost:3001/` (when running `npm run dev` in dashboard/)
+
+This is your production-ready frontend:
+- Modern React dashboard with dark theme
+- Sui wallet integration
+- Landing page + payment dashboard
+- **Connected to backend API** at port 8000
+
+### 🧪 Backend Test UI (Optional/Legacy)
+**URL:** `http://localhost:8000/` (the static HTML page)
+
+This is an old testing interface:
+- Purple gradient, manual form fields
+- Contains outdated Stellar blockchain references
+- Only for internal API testing
+- Can be ignored or removed
+
+### 📚 API Documentation
+**URL:** `http://localhost:8000/docs` (Swagger UI)
+
+For testing backend endpoints directly.
+
+---
+
+**The Dashboard IS Connected to the Backend!** The Dashboard makes API calls to `http://localhost:8000/api/v1/*` endpoints. They communicate via REST API (standard architecture). See [FRONTEND_BACKEND_CONNECTION.md](./FRONTEND_BACKEND_CONNECTION.md) for details.
+
 ## Tech Stack
 
 ### Backend
@@ -10,10 +41,12 @@ A crypto-to-fiat payment bridge that enables users to pay at any online checkout
 - **Lithic API** for virtual card issuance and management
 - **Pydantic Settings** for configuration management
 - **Uvicorn** as ASGI server
+- **Railway** for deployment
 
 ### Dashboard (Frontend)
 - **React 18** with Vite
-- **Sui Wallet Kit** (`@suiet/wallet-kit`) for wallet integration
+- **Tailwind CSS** for styling
+- **Sui Wallet Kit** & **@mysten/dapp-kit** for wallet integration
 - **Sui.js** (`@mysten/sui.js`) for blockchain interactions
 
 ### Smart Contract
@@ -22,7 +55,10 @@ A crypto-to-fiat payment bridge that enables users to pay at any online checkout
 
 ### Browser Extension
 - **Manifest V3** Chrome extension
-- Content script for checkout page detection
+- **Automated Checkout Detection** on payment pages
+- **Smart DOM Extraction** for scraping merchant, product, and pricing details
+- **Auto-fill Capability** for virtual card details
+- **Currency Conversion** using exchange rate API
 
 ## Folder Structure
 
@@ -43,8 +79,10 @@ stellar pay/
 │   ├── src/
 │   │   ├── App.jsx        # Main application component
 │   │   ├── main.jsx       # React entry point
-│   │   └── *.css          # Stylesheets
+│   │   └── index.css      # Tailwind directives and globals
 │   ├── package.json       # Node.js dependencies
+│   ├── tailwind.config.js # Tailwind configuration
+│   ├── postcss.config.js  # PostCSS configuration
 │   └── vite.config.js     # Vite configuration
 │
 ├── extension/             # Chrome browser extension
