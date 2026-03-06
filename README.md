@@ -63,7 +63,7 @@ For testing backend endpoints directly.
 ## Folder Structure
 
 ```
-stellar pay/
+payzee/
 ├── backend/               # FastAPI backend service
 │   ├── src/
 │   │   ├── main.py        # Application entry point and API routes
@@ -108,7 +108,7 @@ stellar pay/
 
 1. Navigate to the backend directory:
    ```bash
-   cd "stellar pay/backend"
+   cd "payzee/backend"
    ```
 
 2. Create and activate a virtual environment:
@@ -140,7 +140,7 @@ stellar pay/
 
 1. Navigate to the dashboard directory:
    ```bash
-   cd "stellar pay/dashboard"
+   cd "payzee/dashboard"
    ```
 
 2. Install dependencies:
@@ -159,13 +159,13 @@ stellar pay/
 
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `stellar pay/extension` directory
+3. Click "Load unpacked" and select the `payzee/extension` directory
 
 ### Smart Contract (Sui)
 
 1. Navigate to the contract directory:
    ```bash
-   cd "stellar pay/sui-escrow"
+   cd "payzee/sui-escrow"
    ```
 
 2. Build the contract:

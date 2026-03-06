@@ -73,7 +73,7 @@ If the package doesn't exist, you need to deploy it:
 
 ```bash
 # Navigate to contract directory
-cd "c:\temp\payzee\stellar pay\sui-escrow"
+cd "c:\temp\payzee\payzee\sui-escrow"
 
 # Make sure you're on testnet
 sui client switch --env testnet
@@ -197,7 +197,7 @@ curl -X POST https://fullnode.testnet.sui.io:443 \
   -d '{"jsonrpc":"2.0","id":1,"method":"sui_getObject","params":["0xd0d84d39c4cb1e8504696f447daccc5c0a105c7459a5bafedb1c31bb5e3dbf69"]}'
 
 # Deploy contract (if needed)
-cd "c:\temp\payzee\stellar pay\sui-escrow"
+cd "c:\temp\payzee\payzee\sui-escrow"
 sui client publish --gas-budget 100000000
 ```
 

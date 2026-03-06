@@ -29,7 +29,7 @@ The dashboard cannot process payments without the backend API running.
 Open a **new terminal** and run:
 
 ```powershell
-cd "c:\temp\payzee\stellar pay\backend"
+cd "c:\temp\payzee\payzee\backend"
 
 # Check if venv folder exists and has Python
 # If yes, run:
@@ -57,7 +57,7 @@ INFO:     Application startup complete.
 
 3. **Then run:**
    ```powershell
-   cd "c:\temp\payzee\stellar pay\backend"
+   cd "c:\temp\payzee\payzee\backend"
    python -m venv venv
    venv\Scripts\python.exe -m pip install -r requirements.txt
    venv\Scripts\python.exe -m uvicorn src.main:app --reload --port 8000
@@ -160,7 +160,7 @@ For a more seamless experience:
 2. Go to `chrome://extensions/` or `edge://extensions/`
 3. Enable **"Developer mode"** (toggle in top-right)
 4. Click **"Load unpacked"**
-5. Select folder: `c:\temp\payzee\stellar pay\extension`
+5. Select folder: `c:\temp\payzee\payzee\extension`
 
 ### **How It Works:**
 

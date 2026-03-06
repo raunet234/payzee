@@ -75,7 +75,7 @@ Complete!        Auto-fills card details         Purchase complete!
 2. Navigate to: `chrome://extensions/` (or `edge://extensions/`)
 3. **Enable "Developer mode"** (toggle in top-right corner)
 4. Click **"Load unpacked"**
-5. Select folder: `c:\temp\payzee\stellar pay\extension`
+5. Select folder: `c:\temp\payzee\payzee\extension`
 
 **You should see:**
 ```
@@ -182,7 +182,7 @@ The extension can be configured in `content.js`:
 const DEV_MODE = true;  // Use localhost dashboard
 const DASHBOARD_URL = DEV_MODE 
   ? 'http://localhost:3001'  // Local development
-  : 'https://payzee-omega.vercel.app';  // Production URL
+  : 'https://payzee-tan.vercel.app';  // Production URL
 ```
 
 **For your current setup:**

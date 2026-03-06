@@ -3,7 +3,7 @@ console.log('Payzee Extension: Content script loaded');
 // Use localhost for development, production URL for deployed version
 // Set DEV_MODE to true for local development
 const DEV_MODE = true;
-const DASHBOARD_URL = DEV_MODE ? 'http://localhost:3001' : 'https://payzee-omega.vercel.app';
+const DASHBOARD_URL = DEV_MODE ? 'http://localhost:3001' : 'https://payzee-tan.vercel.app';
 let cardDetails = null;
 let productDetails = null;
 

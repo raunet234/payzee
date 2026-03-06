@@ -76,7 +76,7 @@ Status: Ready to deploy!
 
 2. **Navigate to dashboard directory:**
    ```bash
-   cd "c:\temp\payzee\stellar pay\dashboard"
+   cd "c:\temp\payzee\payzee\dashboard"
    ```
 
 3. **Login to Vercel:**
@@ -186,7 +186,7 @@ Once deployed, update the extension to use your production URL:
 ```javascript
 // BEFORE (local development)
 const DEV_MODE = true;
-const DASHBOARD_URL = DEV_MODE ? 'http://localhost:3001' : 'https://payzee-omega.vercel.app';
+const DASHBOARD_URL = DEV_MODE ? 'http://localhost:3001' : 'https://payzee-tan.vercel.app';
 ```
 
 **AFTER (production):**

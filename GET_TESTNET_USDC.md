@@ -75,7 +75,7 @@ Since there's no direct USDC faucet, you need to:
 
 2. **Redeploy the contract:**
    ```bash
-   cd "c:\temp\payzee\stellar pay\sui-escrow"
+   cd "c:\temp\payzee\payzee\sui-escrow"
    sui client publish --gas-budget 100000000
    ```
 
