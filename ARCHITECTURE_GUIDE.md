@@ -126,11 +126,11 @@ Test if dashboard can reach backend:
 
 ```bash
 # Terminal 1: Backend
-cd "c:\temp\payzee\stellar pay\backend"
+cd "c:\temp\payzee\payzee\backend"
 uvicorn src.main:app --reload --port 8000
 
 # Terminal 2: Dashboard
-cd "c:\temp\payzee\stellar pay\dashboard"  
+cd "c:\temp\payzee\payzee\dashboard"  
 npm run dev
 ```
 
@@ -157,7 +157,7 @@ If you want to clean up and remove confusion:
 
 ```bash
 # Remove the old test UI
-rm "c:\temp\payzee\stellar pay\backend\static\index.html"
+rm "c:\temp\payzee\payzee\backend\static\index.html"
 ```
 
 Then in `backend/src/main.py`, remove lines 260-263 (static file mounting).

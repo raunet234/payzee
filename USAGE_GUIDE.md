@@ -95,7 +95,7 @@ This is the more seamless approach once you have the extension installed.
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable **"Developer mode"** (toggle in top right)
 3. Click **"Load unpacked"**
-4. Select the folder: `c:\temp\payzee\stellar pay\extension`
+4. Select the folder: `c:\temp\payzee\payzee\extension`
 
 #### Step 2: Browse to Any E-commerce Site
 1. Go to any online store (e.g., Amazon, Shopify store, etc.)
@@ -127,7 +127,7 @@ Once the virtual card is created:
 To start the backend:
 
 ```bash
-cd "c:\temp\payzee\stellar pay\backend"
+cd "c:\temp\payzee\payzee\backend"
 
 # Activate virtual environment
 .\.venv\Scripts\activate
@@ -229,7 +229,7 @@ Want to test the entire system? Here's a quick test:
 
 1. **Start backend:**
    ```bash
-   cd "c:\temp\payzee\stellar pay\backend"
+   cd "c:\temp\payzee\payzee\backend"
    .\.venv\Scripts\activate
    uvicorn src.main:app --reload
    ```

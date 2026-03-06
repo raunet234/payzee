@@ -2,7 +2,7 @@
 
 ## ✅ Problem Solved!
 
-The 404 errors were happening because Vercel was deploying from your **Git repository root** (`stellar pay/`) but looking for files in the wrong location.
+The 404 errors were happening because Vercel was deploying from your **Git repository root** (`payzee/`) but looking for files in the wrong location.
 
 ---
 
@@ -11,7 +11,7 @@ The 404 errors were happening because Vercel was deploying from your **Git repos
 ### **Your Repository Structure:**
 ```
 c:\temp\payzee\
-└── stellar pay\          ← Git repo root
+└── payzee\          ← Git repo root
     ├── dashboard\        ← Your React app
     │   ├── src\
     │   ├── dist\
@@ -22,7 +22,7 @@ c:\temp\payzee\
 ```
 
 ### **The Problem:**
-1. Vercel auto-deploys from the **Git repo root** (`stellar pay/`)
+1. Vercel auto-deploys from the **Git repo root** (`payzee/`)
 2. Your app is in a **subdirectory** (`dashboard/`)
 3. Vercel needs to be told where to find your app!
 
@@ -30,7 +30,7 @@ c:\temp\payzee\
 
 ## ✅ The Solution
 
-I created a **root-level `vercel.json`** at `stellar pay/vercel.json` with these settings:
+I created a **root-level `vercel.json`** at `payzee/vercel.json` with these settings:
 
 ```json
 {
@@ -138,7 +138,7 @@ https://payzee-[hash]-raunet234s-projects.vercel.app
 
 From the dashboard directory:
 ```bash
-cd "c:\temp\payzee\stellar pay\dashboard"
+cd "c:\temp\payzee\payzee\dashboard"
 vercel --prod
 ```
 
@@ -169,7 +169,7 @@ If the above doesn't work:
 ## 📋 File Structure After Fix
 
 ```
-stellar pay/               ← Git repo root
+payzee/               ← Git repo root
 ├── vercel.json           ← NEW: Root config (for Vercel)
 ├── dashboard/
 │   ├── vercel.json       ← Existing: Dashboard config
@@ -218,7 +218,7 @@ git push
 
 **Manual Deploy (CLI):**
 ```bash
-cd "c:\temp\payzee\stellar pay\dashboard"
+cd "c:\temp\payzee\payzee\dashboard"
 vercel --prod
 ```
 
@@ -261,7 +261,7 @@ If you're still seeing 404s after 5 minutes:
 
 3. **Try manual deploy**:
    ```bash
-   cd "c:\temp\payzee\stellar pay\dashboard"
+   cd "c:\temp\payzee\payzee\dashboard"
    vercel --prod
    ```
 
