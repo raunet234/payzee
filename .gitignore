@@ -117,3 +117,18 @@ soroban-escrow/deployment.json
 # -----------------------------------------------------------------------------
 coverage/
 .eslintcache
+
+# -----------------------------------------------------------------------------
+# Unnecessary Documentation Files
+# -----------------------------------------------------------------------------
+*_FIX.md
+*_GUIDE.md
+*_EXPLAINED.md
+CORRECTED_SUMMARY.md
+error.txt
+HOW_TO_USE_CARD.md
+GET_TESTNET_USDC.md
+FRONTEND_BACKEND_CONNECTION.md
+QUICK_TEST_WITHOUT_BLOCKCHAIN.md
+PROJECT_STRUCTURE.md
+QUICK_START.md
