@@ -51,6 +51,7 @@ function Dashboard() {
     const [error, setError] = useState('')
     const [isProcessing, setIsProcessing] = useState(false)
     const [isTestingPayment, setIsTestingPayment] = useState(false)
+    const [copiedField, setCopiedField] = useState(null)
 
     // Data state
     const [virtualCard, setVirtualCard] = useState(null)
@@ -188,7 +189,7 @@ function Dashboard() {
                             last_four: virtualCard.last_four,
                             exp_month: virtualCard.exp_month,
                             exp_year: virtualCard.exp_year,
-                            amount_usd: (virtualCard.amount_cents / 100).toFixed(2),
+                            amount_usd: virtualCard.verified_amount_usdc || (virtualCard.amount_cents / 100).toFixed(6),
                             original_amount: originalAmount || null,
                         },
                     },
@@ -358,27 +359,68 @@ function Dashboard() {
 
             console.log('Transaction signed and executed:', signedTx)
 
-            // Step 4: Submit to backend and create virtual card
-            setStatus('Creating virtual card...')
+            // Step 4: Wait for Sui to index the transaction, then submit to backend
+            setStatus('Waiting for blockchain confirmation...')
+            console.log('Waiting for Sui RPC to index transaction...')
 
-            const submitResponse = await fetch(`${BACKEND_URL}/api/v1/payment/submit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-Key': API_KEY,
-                },
-                body: JSON.stringify({
-                    session_id: session.session_id,
-                    signed_transaction: signedTx.digest,
-                    escrow_id: signedTx.effects?.created?.[0]?.reference?.objectId || '',
-                }),
-            })
+            // Retry logic — Sui testnet RPC needs time to index new transactions
+            const MAX_RETRIES = 4
+            const INITIAL_DELAY_MS = 3000 // 3 seconds initial wait
+            let submitResponse = null
+            let lastError = null
 
-            if (!submitResponse.ok) {
-                const errorData = await submitResponse.json().catch(() => ({}))
-                throw new Error(errorData.detail || 'Failed to create card')
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                const delayMs = INITIAL_DELAY_MS + (attempt - 1) * 2000 // 3s, 5s, 7s, 9s
+                console.log(`Attempt ${attempt}/${MAX_RETRIES}: waiting ${delayMs}ms...`)
+                setStatus(`Confirming on-chain (attempt ${attempt}/${MAX_RETRIES})...`)
+
+                await new Promise(resolve => setTimeout(resolve, delayMs))
+
+                try {
+                    submitResponse = await fetch(`${BACKEND_URL}/api/v1/payment/submit`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': API_KEY,
+                        },
+                        body: JSON.stringify({
+                            session_id: session.session_id,
+                            signed_transaction: signedTx.digest,
+                            escrow_id: signedTx.effects?.created?.[0]?.reference?.objectId || '',
+                        }),
+                    })
+
+                    if (submitResponse.ok) {
+                        console.log(`Transaction confirmed on attempt ${attempt}`)
+                        break // Success — exit retry loop
+                    }
+
+                    // Check if it's a "transaction not found" error (worth retrying)
+                    const errBody = await submitResponse.json().catch(() => ({}))
+                    const errMsg = errBody.detail || ''
+                    lastError = errMsg
+
+                    if (errMsg.includes('Could not find the referenced transaction') && attempt < MAX_RETRIES) {
+                        console.log(`Transaction not indexed yet, retrying...`)
+                        submitResponse = null // Mark for retry
+                        continue
+                    }
+
+                    // Non-retryable error
+                    throw new Error(errMsg || 'Failed to create card')
+                } catch (fetchErr) {
+                    lastError = fetchErr.message
+                    if (attempt === MAX_RETRIES) throw fetchErr
+                    console.warn(`Attempt ${attempt} failed: ${fetchErr.message}`)
+                    submitResponse = null
+                }
             }
 
+            if (!submitResponse || !submitResponse.ok) {
+                throw new Error(lastError || 'Failed to verify transaction after multiple attempts')
+            }
+
+            setStatus('Creating virtual card...')
             const cardData = await submitResponse.json()
             console.log('Card created:', cardData)
 
@@ -481,168 +523,193 @@ function Dashboard() {
                         )}
 
                         {virtualCard && (
-                            <div className="card-created">
-                                <h3>✅ Virtual Card Created</h3>
-                                <div className="card-info">
-                                    <p>
-                                        <strong>Card Number:</strong> •••• {virtualCard.last_four}
-                                    </p>
-                                    <p>
-                                        <strong>Expires:</strong> {virtualCard.exp_month}/{virtualCard.exp_year}
-                                    </p>
-                                    <p>
-                                        <strong>Amount:</strong> ${(virtualCard.amount_cents / 100).toFixed(2)}
-                                    </p>
-                                </div>
+                            <div style={{ marginTop: '2rem' }}>
+                                {/* ── Premium Card Visual ── */}
+                                <div style={{
+                                    perspective: '1000px',
+                                    marginBottom: '1.5rem'
+                                }}>
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            maxWidth: '420px',
+                                            aspectRatio: '1.586',
+                                            margin: '0 auto',
+                                            borderRadius: '16px',
+                                            background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, #16213e 70%, #0f3460 100%)',
+                                            padding: '28px 28px 24px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            position: 'relative',
+                                            overflow: 'hidden',
+                                            boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(74,222,128,0.08)',
+                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
+                                            transform: 'rotateX(2deg)',
+                                            transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                                            cursor: 'default',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'rotateX(0deg) scale(1.02)'
+                                            e.currentTarget.style.boxShadow = '0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(74,222,128,0.12)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'rotateX(2deg) scale(1)'
+                                            e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(74,222,128,0.08)'
+                                        }}
+                                    >
+                                        {/* Holographic shine overlay */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: 0, left: 0, right: 0, bottom: 0,
+                                            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 55%, transparent 60%)',
+                                            pointerEvents: 'none',
+                                        }} />
 
-                                {/* Full Card Details Section */}
-                                <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '2px solid #e9ecef' }}>
-                                    <h4 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>💳 Card Details for Checkout</h4>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {/* Card Number */}
-                                        <div>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#666', display: 'block', marginBottom: '0.25rem' }}>
-                                                CARD NUMBER
-                                            </label>
-                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                <code style={{
-                                                    flex: 1,
-                                                    padding: '0.75rem',
-                                                    background: 'white',
-                                                    border: '1px solid #dee2e6',
-                                                    borderRadius: '4px',
-                                                    fontFamily: 'monospace',
-                                                    fontSize: '1rem',
-                                                    letterSpacing: '0.05em'
+                                        {/* Card Top Row — Chip + Contactless + Visa */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                {/* EMV Chip */}
+                                                <div style={{
+                                                    width: '45px', height: '34px',
+                                                    borderRadius: '6px',
+                                                    background: 'linear-gradient(135deg, #c9a84c 0%, #f0d78c 30%, #c9a84c 60%, #a88734 100%)',
+                                                    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.2)',
+                                                    position: 'relative',
+                                                    overflow: 'hidden',
                                                 }}>
-                                                    {virtualCard.pan || `•••• •••• •••• ${virtualCard.last_four}`}
-                                                </code>
-                                                {virtualCard.pan && (
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(virtualCard.pan)
-                                                            alert('Card number copied!')
-                                                        }}
-                                                        style={{
-                                                            padding: '0.6rem 1rem',
-                                                            background: '#28a745',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.85rem',
-                                                            fontWeight: '600'
-                                                        }}
-                                                    >
-                                                        Copy
-                                                    </button>
-                                                )}
+                                                    {/* Chip lines */}
+                                                    <div style={{ position: 'absolute', top: '8px', left: '4px', right: '4px', height: '1px', background: 'rgba(0,0,0,0.15)' }} />
+                                                    <div style={{ position: 'absolute', top: '14px', left: '4px', right: '4px', height: '1px', background: 'rgba(0,0,0,0.15)' }} />
+                                                    <div style={{ position: 'absolute', top: '20px', left: '4px', right: '4px', height: '1px', background: 'rgba(0,0,0,0.15)' }} />
+                                                    <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: '15px', width: '1px', background: 'rgba(0,0,0,0.1)' }} />
+                                                    <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: '30px', width: '1px', background: 'rgba(0,0,0,0.1)' }} />
+                                                </div>
+                                                {/* Contactless icon */}
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.5 }}>
+                                                    <path d="M12 18c3.31 0 6-2.69 6-6s-2.69-6-6-6" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                                                    <path d="M12 14c1.1 0 2-0.9 2-2s-0.9-2-2-2" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                                                    <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                                                </svg>
+                                            </div>
+                                            {/* Visa Logo */}
+                                            <div style={{ fontSize: '28px', fontWeight: 800, fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                                                VISA
                                             </div>
                                         </div>
 
-                                        {/* Expiration and CVV Row */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                            {/* Expiration */}
-                                            <div>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#666', display: 'block', marginBottom: '0.25rem' }}>
-                                                    EXPIRATION
-                                                </label>
-                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                    <code style={{
-                                                        flex: 1,
-                                                        padding: '0.75rem',
-                                                        background: 'white',
-                                                        border: '1px solid #dee2e6',
-                                                        borderRadius: '4px',
-                                                        fontFamily: 'monospace',
-                                                        fontSize: '1rem'
-                                                    }}>
-                                                        {String(virtualCard.exp_month).padStart(2, '0')}/{virtualCard.exp_year}
-                                                    </code>
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(`${String(virtualCard.exp_month).padStart(2, '0')}/${virtualCard.exp_year}`)
-                                                            alert('Expiration copied!')
-                                                        }}
-                                                        style={{
-                                                            padding: '0.6rem 1rem',
-                                                            background: '#28a745',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.85rem',
-                                                            fontWeight: '600'
-                                                        }}
-                                                    >
-                                                        Copy
-                                                    </button>
+                                        {/* Card Number */}
+                                        <div
+                                            style={{
+                                                fontSize: '22px',
+                                                fontWeight: 500,
+                                                letterSpacing: '3px',
+                                                color: '#fff',
+                                                fontFamily: "'Courier New', 'Monaco', monospace",
+                                                textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                                                cursor: 'pointer',
+                                                padding: '4px 0',
+                                                transition: 'opacity 0.2s',
+                                            }}
+                                            onClick={() => {
+                                                if (virtualCard.pan) {
+                                                    navigator.clipboard.writeText(virtualCard.pan)
+                                                    setCopiedField('pan')
+                                                    setTimeout(() => setCopiedField(null), 1500)
+                                                }
+                                            }}
+                                            title="Click to copy card number"
+                                        >
+                                            {copiedField === 'pan'
+                                                ? '✓ Copied!'
+                                                : virtualCard.pan
+                                                    ? virtualCard.pan.replace(/(.{4})/g, '$1 ').trim()
+                                                    : `•••• •••• •••• ${virtualCard.last_four}`
+                                            }
+                                        </div>
+
+                                        {/* Card Bottom Row — Expiry, CVV, Amount */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                            <div style={{ display: 'flex', gap: '24px' }}>
+                                                {/* Expiry */}
+                                                <div
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`${String(virtualCard.exp_month).padStart(2, '0')}/${virtualCard.exp_year}`)
+                                                        setCopiedField('exp')
+                                                        setTimeout(() => setCopiedField(null), 1500)
+                                                    }}
+                                                    title="Click to copy expiry"
+                                                >
+                                                    <div style={{ fontSize: '9px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', marginBottom: '3px' }}>
+                                                        VALID THRU
+                                                    </div>
+                                                    <div style={{ fontSize: '16px', fontWeight: 600, color: '#fff', fontFamily: "monospace", letterSpacing: '1px' }}>
+                                                        {copiedField === 'exp' ? '✓' : `${String(virtualCard.exp_month).padStart(2, '0')}/${String(virtualCard.exp_year).slice(-2)}`}
+                                                    </div>
+                                                </div>
+                                                {/* CVV */}
+                                                <div
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => {
+                                                        if (virtualCard.cvv) {
+                                                            navigator.clipboard.writeText(virtualCard.cvv)
+                                                            setCopiedField('cvv')
+                                                            setTimeout(() => setCopiedField(null), 1500)
+                                                        }
+                                                    }}
+                                                    title="Click to copy CVV"
+                                                >
+                                                    <div style={{ fontSize: '9px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', marginBottom: '3px' }}>
+                                                        CVV
+                                                    </div>
+                                                    <div style={{ fontSize: '16px', fontWeight: 600, color: '#fff', fontFamily: "monospace", letterSpacing: '1px' }}>
+                                                        {copiedField === 'cvv' ? '✓' : (virtualCard.cvv || '•••')}
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            {/* CVV */}
-                                            <div>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#666', display: 'block', marginBottom: '0.25rem' }}>
-                                                    CVV
-                                                </label>
-                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                    <code style={{
-                                                        flex: 1,
-                                                        padding: '0.75rem',
-                                                        background: 'white',
-                                                        border: '1px solid #dee2e6',
-                                                        borderRadius: '4px',
-                                                        fontFamily: 'monospace',
-                                                        fontSize: '1rem'
-                                                    }}>
-                                                        {virtualCard.cvv || '•••'}
-                                                    </code>
-                                                    {virtualCard.cvv && (
-                                                        <button
-                                                            onClick={() => {
-                                                                navigator.clipboard.writeText(virtualCard.cvv)
-                                                                alert('CVV copied!')
-                                                            }}
-                                                            style={{
-                                                                padding: '0.6rem 1rem',
-                                                                background: '#28a745',
-                                                                color: 'white',
-                                                                border: 'none',
-                                                                borderRadius: '4px',
-                                                                cursor: 'pointer',
-                                                                fontSize: '0.85rem',
-                                                                fontWeight: '600'
-                                                            }}
-                                                        >
-                                                            Copy
-                                                        </button>
-                                                    )}
+                                            {/* Amount + Payzee */}
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80', letterSpacing: '-0.5px' }}>
+                                                    {virtualCard.verified_amount_usdc
+                                                        ? `$${virtualCard.verified_amount_usdc}`
+                                                        : `$${(virtualCard.amount_cents / 100).toFixed(2)}`
+                                                    }
+                                                </div>
+                                                <div style={{ fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', marginTop: '2px' }}>
+                                                    PAYZEE
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <p style={{
-                                        marginTop: '1rem',
-                                        fontSize: '0.85rem',
-                                        color: '#666',
-                                        padding: '0.75rem',
-                                        background: '#fff3cd',
-                                        border: '1px solid #ffc107',
-                                        borderRadius: '4px'
-                                    }}>
-                                        💡 <strong>Tip:</strong> Use these details at any online checkout. For cardholder name, use "Payzee User" or your name.
-                                    </p>
                                 </div>
 
-                                <p className="card-note">
-                                    Card details have been sent to the merchant page. Click{' '}
-                                    <strong>Confirm Transaction</strong> to complete payment.
+                                {/* Click to copy hint */}
+                                <p style={{
+                                    textAlign: 'center',
+                                    fontSize: '0.8rem',
+                                    color: '#555',
+                                    marginBottom: '1rem',
+                                }}>
+                                    Click on card number, expiry, or CVV to copy
                                 </p>
 
+                                {/* Tip */}
+                                <div style={{
+                                    padding: '0.75rem 1rem',
+                                    background: 'rgba(74,222,128,0.06)',
+                                    border: '1px solid rgba(74,222,128,0.15)',
+                                    borderRadius: '10px',
+                                    fontSize: '0.8rem',
+                                    color: '#777',
+                                    lineHeight: '1.5',
+                                }}>
+                                    💡 <strong style={{ color: '#999' }}>Tip:</strong> Use these details at any online checkout. For cardholder name, use <strong style={{ color: '#ccc' }}>Payzee User</strong>.
+                                </div>
+
                                 {paymentResult && (
-                                    <div className="payment-complete">
+                                    <div className="payment-complete" style={{ marginTop: '1rem' }}>
                                         <h3>🎉 Payment Complete!</h3>
                                         <p>Transaction successful</p>
                                     </div>
@@ -655,7 +722,7 @@ function Dashboard() {
                     </div>
                 )}
 
-                <div className="footer  text-center">
+                <div className="footer">
                     <p>Powered by Sui • Secure escrow via smart contracts</p>
                 </div>
             </div>

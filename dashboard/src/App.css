@@ -1,349 +1,418 @@
+/* =============================================================================
+   Payzee Dashboard — Dark Theme (matches Landing page)
+   ============================================================================= */
+
+.App {
+  min-height: 100vh;
+  background: #080808;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 24px;
+}
+
 .container {
   width: 100%;
+  max-width: 520px;
 }
 
-.card {
-  background: white;
-  border: 2px solid black;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 40px;
-}
-
+/* ── Header ── */
 .header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .header h1 {
-  font-size: 32px;
-  color: black;
-  margin-bottom: 8px;
-  font-weight: 700;
+  font-size: 28px;
+  color: #fff;
+  margin-bottom: 6px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
-.subtitle {
-  color: black;
-  font-size: 16px;
+.tagline {
+  color: #666;
+  font-size: 15px;
+  font-weight: 400;
 }
 
-.error-banner {
-  background: white;
-  border: 2px solid black;
-  color: black;
-  padding: 12px 16px;
-  border-radius: 4px;
-  margin-bottom: 24px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.connect-section {
+/* ── Merchant Info ── */
+.merchant-info {
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.15);
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.info-text {
-  color: black;
-  margin-bottom: 24px;
+.merchant-info h3 {
   font-size: 15px;
-  line-height: 1.6;
-}
-
-.btn-primary {
-  background: black;
-  color: white;
-  border: 2px solid black;
-  padding: 14px 28px;
-  border-radius: 4px;
-  font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  width: 100%;
+  color: #fff;
+  margin-bottom: 4px;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.merchant-info .domain {
+  font-size: 13px;
+  color: #666;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* ── Connect Section ── */
+.connect-section {
+  text-align: center;
+  padding: 40px 0;
 }
 
-.btn-secondary {
-  background: white;
-  color: black;
-  border: 2px solid black;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-  margin-top: 16px;
+.connect-section button,
+.connect-section [class*="wkit-button"],
+.connect-section [class*="ConnectButton"] {
+  background: #fff !important;
+  color: #080808 !important;
+  border: none !important;
+  border-radius: 100px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 14px 32px !important;
+  cursor: pointer !important;
+  transition: opacity 0.2s !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
-.btn-secondary:hover {
-  background: #f5f5f5;
+.connect-section button:hover {
+  opacity: 0.88 !important;
 }
 
-.payment-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.hint {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #555;
 }
 
+/* ── Wallet Info ── */
 .wallet-info {
-  background: white;
-  border: 2px solid black;
-  padding: 16px;
-  border-radius: 4px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 20px;
+  border-radius: 12px;
 }
 
-.wallet-info .label {
-  font-size: 14px;
-  color: black;
+.connected-badge {
+  font-size: 13px;
   font-weight: 600;
-}
-
-.wallet-info .value {
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  color: black;
+  color: #4ade80;
 }
 
 .disconnect-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .disconnect-button:hover {
-  background: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
-.disconnect-button:active {
-  transform: translateY(0);
+.address {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
 }
 
-.form-group {
+/* ── Payment Section ── */
+.payment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Amount Input ── */
+.amount-input {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-group label {
-  font-size: 14px;
+.amount-input label {
+  font-size: 13px;
   font-weight: 600;
-  color: black;
+  color: #999;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.form-group input {
-  padding: 12px;
-  border: 2px solid black;
-  border-radius: 4px;
-  font-size: 16px;
+.amount-input input {
+  padding: 14px 16px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
   transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-group input:focus {
+.amount-input input::placeholder {
+  color: #444;
+}
+
+.amount-input input:focus {
   outline: none;
-  border-color: black;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
 }
 
-.form-group input:disabled {
-  background: #f5f5f5;
+.amount-input input:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.status-message {
-  background: white;
-  border: 2px solid black;
-  color: black;
-  padding: 12px;
-  border-radius: 4px;
+/* ── Pay Button ── */
+.pay-button {
+  width: 100%;
+  padding: 16px;
+  background: #fff;
+  color: #080808;
+  border: none;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.pay-button:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.pay-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Card Created Section ── */
+.card-created {
+  background: #111;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  padding: 24px;
+  border-radius: 14px;
+}
+
+.card-created h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4ade80;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.1);
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.card-info p {
+  font-size: 14px;
+  color: #ccc;
+  margin: 0;
+}
+
+.card-info strong {
+  color: #999;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Card Details for Checkout — override inline styles */
+.card-created div[style] h4 {
+  color: #fff !important;
+}
+
+.card-created div[style] label {
+  color: #888 !important;
+}
+
+.card-created div[style] code {
+  background: #1a1a1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.card-created div[style] button {
+  background: #4ade80 !important;
+  color: #080808 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.card-created div[style] > p {
+  background: rgba(74, 222, 128, 0.08) !important;
+  border-color: rgba(74, 222, 128, 0.2) !important;
+  color: #999 !important;
+}
+
+.card-created div[style] > p strong {
+  color: #ccc !important;
+}
+
+.card-note {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 16px;
+  color: #777;
+}
+
+.card-note strong {
+  color: #ccc;
+}
+
+/* ── Payment Complete ── */
+.payment-complete {
+  text-align: center;
+  padding: 20px;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.payment-complete h3 {
+  color: #4ade80;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.payment-complete p {
+  color: #999;
+  font-size: 14px;
+}
+
+/* ── Status & Error ── */
+.status {
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  padding: 12px 16px;
+  border-radius: 10px;
   text-align: center;
   font-size: 14px;
   font-weight: 500;
 }
 
-.card-section {
+.error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ── Footer ── */
+.footer {
+  margin-top: 40px;
   text-align: center;
 }
 
-.card-section h2 {
-  color: black;
-  margin-bottom: 8px;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.card-instruction {
-  color: black;
-  margin-bottom: 24px;
-  font-size: 14px;
-}
-
-.card-display {
-  background: white;
-  border: 2px solid black;
-  padding: 24px;
-  border-radius: 8px;
-  color: black;
-  margin-bottom: 24px;
-}
-
-.card-field {
-  margin-bottom: 16px;
-}
-
-.card-field:last-child {
-  margin-bottom: 0;
-}
-
-.card-field label {
-  display: block;
+.footer p {
   font-size: 12px;
-  text-transform: uppercase;
+  color: #444;
   letter-spacing: 0.5px;
-  color: black;
-  font-weight: 600;
-  margin-bottom: 6px;
 }
 
-.card-value {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.card-value code {
-  background: white;
-  border: 2px solid black;
-  padding: 10px 14px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: 'Monaco', 'Courier New', monospace;
-  flex: 1;
-  text-align: left;
-  color: black;
-}
-
-.card-value strong {
-  font-size: 18px;
-}
-
-.btn-copy {
-  background: black;
-  border: 2px solid black;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-
-.btn-copy:hover {
-  background: #333;
-}
-
-.card-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.card-note {
-  background: white;
-  border: 2px solid black;
-  padding: 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  line-height: 1.5;
-  margin-top: 20px;
-  color: black;
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 24px;
-  }
-
-  .header h1 {
-    font-size: 24px;
-  }
-
-  .card-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Loading Modal */
+/* ── Loading Modal ── */
 .loading-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
 .loading-content {
-  background: white;
+  background: #111;
   padding: 40px 60px;
-  border-radius: 12px;
-  border: 2px solid black;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid black;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #4ade80;
   border-radius: 50%;
   margin: 0 auto 20px;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .loading-content h3 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: black;
+  color: #fff;
   margin-bottom: 8px;
 }
 
 .loading-content p {
   font-size: 14px;
   color: #666;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .App {
+    padding: 32px 16px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .card-created {
+    padding: 18px;
+  }
 }

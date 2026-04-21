@@ -508,10 +508,10 @@ function createPayButton() {
   const button = document.createElement('button');
   button.id = 'stellar-pay-button';
   button.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M2 17L12 22L22 17" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M2 12L12 17L22 12" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 17L12 22L22 17" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 12L12 17L22 12" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     Pay with Payzee
   `;
@@ -520,32 +520,33 @@ function createPayButton() {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    padding: 16px 24px;
-    background: white;
-    color: black;
-    border: 2px solid black;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: 14px 24px;
+    background: #080808;
+    color: #fff;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    border-radius: 100px;
+    font-size: 15px;
     font-weight: 600;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(74, 222, 128, 0.1);
     z-index: 999999;
     display: flex;
     align-items: center;
     transition: all 0.3s ease;
+    letter-spacing: 0;
   `;
   
   button.addEventListener('mouseenter', () => {
     button.style.transform = 'translateY(-2px)';
-    button.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
-    button.style.background = '#f9fafb';
+    button.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 50px rgba(74, 222, 128, 0.15)';
+    button.style.borderColor = 'rgba(74, 222, 128, 0.5)';
   });
   
   button.addEventListener('mouseleave', () => {
     button.style.transform = 'translateY(0)';
-    button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    button.style.background = 'white';
+    button.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(74, 222, 128, 0.1)';
+    button.style.borderColor = 'rgba(74, 222, 128, 0.3)';
   });
   
   button.addEventListener('click', handlePayWithCrypto);
@@ -580,8 +581,12 @@ async function handlePayWithCrypto() {
   openDashboard(usdAmount, amountData, merchant);
 }
 
-// Open dashboard with payment details
+// Open dashboard as a small popup window for wallet connection + card creation
+// Wallet extensions can't inject into iframes, so we need a real window
 function openDashboard(usdAmount, originalAmount, merchant) {
+  // Remove loading modal
+  hideLoadingModal();
+
   // Build dashboard URL with amount and merchant data
   const params = new URLSearchParams();
   if (usdAmount) {
@@ -594,27 +599,159 @@ function openDashboard(usdAmount, originalAmount, merchant) {
   params.set('domain', merchant.domain);
   
   const dashboardUrl = `${DASHBOARD_URL}?${params.toString()}`;
-  dashboardWindow = window.open(dashboardUrl, 'payzee-dashboard', 'width=500,height=700');
-  
-  // Listen for card details from dashboard
+
+  // Calculate popup position (bottom-right corner of screen)
+  const popupWidth = 420;
+  const popupHeight = 650;
+  const left = window.screen.width - popupWidth - 40;
+  const top = window.screen.height - popupHeight - 100;
+
+  // Open as small popup window (wallet extensions CAN inject here)
+  dashboardWindow = window.open(
+    dashboardUrl,
+    'payzee-dashboard',
+    `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,status=no`
+  );
+
+  // Hide the pay button while popup is open
+  const payBtn = document.getElementById('stellar-pay-button');
+  if (payBtn) payBtn.style.display = 'none';
+
+  // Listen for card details from dashboard popup
   window.addEventListener('message', handleDashboardMessage);
+
+  // Poll to detect if popup was closed manually
+  const pollTimer = setInterval(() => {
+    if (dashboardWindow && dashboardWindow.closed) {
+      clearInterval(pollTimer);
+      // Re-show the pay button if user closed popup without creating card
+      if (!cardDetails) {
+        const payBtn = document.getElementById('stellar-pay-button');
+        if (payBtn) payBtn.style.display = 'flex';
+      }
+    }
+  }, 500);
+}
+
+// Show floating card details panel (fallback when auto-fill can't access fields)
+function showCardDetailsPanel(card) {
+  // Remove existing panel
+  const existing = document.getElementById('payzee-card-panel');
+  if (existing) existing.remove();
+
+  const pan = card.pan || '';
+  const expMonth = (card.exp_month || '').toString().padStart(2, '0');
+  const expYear = (card.exp_year || '').toString();
+  const cvv = card.cvv || '';
+
+  const panel = document.createElement('div');
+  panel.id = 'payzee-card-panel';
+  panel.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 360px;
+    z-index: 9999999;
+    background: #0c0c0c;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 60px rgba(74, 222, 128, 0.08);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    animation: payzee-panel-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  `;
+
+  panel.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <span style="font-size: 14px; font-weight: 700; color: #fff;">
+        Pay<span style="color: #4ade80;">zee</span> — Your Card
+      </span>
+      <button id="payzee-card-panel-close" style="background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1;">✕</button>
+    </div>
+    <div style="padding: 18px;">
+      <div style="margin-bottom: 14px;">
+        <div style="font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">Card Number</div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <code style="flex: 1; padding: 10px 12px; background: #111; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; font-size: 15px; font-family: 'Monaco', 'Courier New', monospace; letter-spacing: 1px;">${pan}</code>
+          <button class="payzee-copy-btn" data-copy="${pan}" style="padding: 8px 14px; background: #4ade80; color: #080808; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; min-width: 52px; transition: all 0.2s;">Copy</button>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">Expiry</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <code style="flex: 1; padding: 10px 12px; background: #111; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; font-size: 15px; font-family: monospace;">${expMonth}/${expYear}</code>
+            <button class="payzee-copy-btn" data-copy="${expMonth}/${expYear}" style="padding: 8px 12px; background: #4ade80; color: #080808; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; min-width: 46px; transition: all 0.2s;">Copy</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">CVV</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <code style="flex: 1; padding: 10px 12px; background: #111; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; font-size: 15px; font-family: monospace;">${cvv}</code>
+            <button class="payzee-copy-btn" data-copy="${cvv}" style="padding: 8px 12px; background: #4ade80; color: #080808; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; min-width: 46px; transition: all 0.2s;">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding: 10px 12px; background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.12); border-radius: 8px; font-size: 12px; color: #777; line-height: 1.5;">
+        💡 Paste these details into the payment form. For cardholder name, use <strong style="color: #ccc;">Payzee User</strong>.
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  // Inject animation styles if not already present
+  if (!document.getElementById('payzee-panel-styles')) {
+    const style = document.createElement('style');
+    style.id = 'payzee-panel-styles';
+    style.textContent = `
+      @keyframes payzee-panel-in {
+        from { opacity: 0; transform: translateY(40px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes payzee-panel-out {
+        from { opacity: 1; transform: translateY(0) scale(1); }
+        to { opacity: 0; transform: translateY(40px) scale(0.95); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Close button
+  document.getElementById('payzee-card-panel-close').addEventListener('click', () => {
+    panel.style.animation = 'payzee-panel-out 0.25s ease-in forwards';
+    setTimeout(() => panel.remove(), 250);
+  });
+
+  // Copy buttons with ✓ feedback
+  panel.querySelectorAll('.payzee-copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(btn.dataset.copy);
+      const original = btn.textContent;
+      btn.textContent = '✓';
+      btn.style.background = '#166534';
+      btn.style.color = '#fff';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.background = '#4ade80';
+        btn.style.color = '#080808';
+      }, 1500);
+    });
+  });
+
+  // Auto-dismiss after 60 seconds
+  setTimeout(() => {
+    if (panel.parentNode) {
+      panel.style.animation = 'payzee-panel-out 0.25s ease-in forwards';
+      setTimeout(() => panel.remove(), 250);
+    }
+  }, 60000);
 }
 
 // Function to auto-fill card details using native setters and events
 function autoFillCardDetails(card) {
   console.log('Payzee: Starting autofill with card:', card);
-  console.log('Payzee: Card properties:', {
-    number: card.number,
-    pan: card.pan,
-    cardNumber: card.cardNumber,
-    expMonth: card.expMonth,
-    exp_month: card.exp_month,
-    expYear: card.expYear,
-    exp_year: card.exp_year,
-    cvv: card.cvv,
-    cvc: card.cvc,
-    securityCode: card.securityCode
-  });
+  let filledCount = 0;
   
   // Helper function to set value and trigger events
   function setInputValue(element, value) {
@@ -640,6 +777,7 @@ function autoFillCardDetails(card) {
       element.dispatchEvent(new Event('blur', { bubbles: true }));
       
       console.log(`Payzee: Filled ${element.name || element.id || 'field'} with value`);
+      filledCount++;
       return true;
     } catch (error) {
       console.error('Payzee: Error setting input value:', error);
@@ -660,6 +798,8 @@ function autoFillCardDetails(card) {
     'input[placeholder*="card number" i]',
     'input[placeholder*="card" i][placeholder*="number" i]',
     'input[autocomplete="cc-number"]',
+    'input[data-testid*="card" i]',
+    'input[aria-label*="card number" i]',
     'input[type="tel"][name*="card" i]',
     'input[type="text"][name*="card" i]'
   ];
@@ -676,7 +816,7 @@ function autoFillCardDetails(card) {
   if (cardNumberField && card.pan) {
     setInputValue(cardNumberField, card.pan);
   } else {
-    console.warn('Payzee: Card number field not found or card.pan missing');
+    console.warn('Payzee: Card number field not found or card.pan missing (likely inside payment iframe)');
   }
   
   // Find expiry field(s)
@@ -776,11 +916,19 @@ function autoFillCardDetails(card) {
     setInputValue(nameField, card.cardholder_name);
   }
   
-  console.log('Payzee: Autofill completed');
-  showNotification('Card details filled automatically!', 'success');
+  console.log(`Payzee: Autofill completed. Fields filled: ${filledCount}`);
   
-  // Show confirm transaction button after autofill
-  showConfirmTransactionButton();
+  if (filledCount > 0) {
+    showNotification('Card details filled automatically!', 'success');
+    // Show confirm transaction button after autofill
+    showConfirmTransactionButton();
+  } else {
+    // Payment form is likely inside a cross-origin iframe (Adyen, Stripe, etc.)
+    // Show floating card panel so user can copy-paste manually
+    console.log('Payzee: No fields filled — showing card details panel for manual entry');
+    showNotification('Card created! Copy details into the payment form.', 'success');
+    showCardDetailsPanel(card);
+  }
 }
 
 // Function to show confirm transaction button
@@ -901,23 +1049,12 @@ async function handleConfirmTransaction() {
   
   console.log('Payzee: Sending confirm transaction message to dashboard');
   
-  // Send to dashboard window if available
+  // Send to dashboard popup window
   if (dashboardWindow && !dashboardWindow.closed) {
-    console.log('Payzee: Sending to stored dashboard window');
-    dashboardWindow.postMessage(message, DASHBOARD_URL);
+    console.log('Payzee: Sending to dashboard popup');
+    dashboardWindow.postMessage(message, '*');
   } else {
-    console.warn('Payzee: Dashboard window not available');
-    // Try to find dashboard by opening it
-    const params = new URLSearchParams();
-    params.set('autoPayment', 'true');
-    dashboardWindow = window.open(`${DASHBOARD_URL}?${params.toString()}`, 'payzee-dashboard');
-    
-    if (dashboardWindow) {
-      // Wait for dashboard to load, then send message
-      setTimeout(() => {
-        dashboardWindow.postMessage(message, DASHBOARD_URL);
-      }, 1000);
-    }
+    console.warn('Payzee: Dashboard popup not available');
   }
   
   console.log('Payzee: Confirm transaction message sent');
@@ -937,15 +1074,24 @@ function handleDashboardMessage(event) {
     cardDetails = event.data.card;
     console.log('Payzee: Card created successfully');
     
-    // Auto-fill card details
+    // Close the popup window
+    if (dashboardWindow && !dashboardWindow.closed) {
+      dashboardWindow.close();
+    }
+    
+    // Auto-fill card details (or show card panel as fallback)
     setTimeout(() => {
       autoFillCardDetails(cardDetails);
-      // Hide loading modal after autofill
       hideLoadingModal();
-    }, 500);
+    }, 400);
   }
   
   if (event.data.type === 'PAYMENT_COMPLETE') {
+    // Close the popup window
+    if (dashboardWindow && !dashboardWindow.closed) {
+      dashboardWindow.close();
+    }
+    
     // Show confirmation overlay on merchant page
     hideLoadingModal();
     showConfirmationModal(event.data.card, productDetails);
@@ -956,6 +1102,10 @@ function handleDashboardMessage(event) {
     if (confirmButton) {
       confirmButton.remove();
     }
+    
+    // Re-show pay button
+    const payBtn = document.getElementById('stellar-pay-button');
+    if (payBtn) payBtn.style.display = 'flex';
   }
 }
 

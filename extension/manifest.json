@@ -4,6 +4,12 @@
   "version": "1.0.8",
   "description": "Pay at any checkout using USDC on Sui - automatic currency conversion",
 
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+
   "permissions": [
     "activeTab",
     "scripting"
